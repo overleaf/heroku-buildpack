@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+indent() {
+    sed 's/^/      /'
+}
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+ENV_DIR=$3
+
+if [ ! -f ${ENV_DIR}/APP_BASE ]; then
+    echo "APP_BASE was not set. Aborting!" | indent
+    exit 1
+fi
+
+if [ ! -f ${ENV_DIR}/APP_DEPS ]; then
+    echo "APP_DEPS was not set. Aborting!" | indent
+    exit 1
+fi
+
+APP_BASE=$(cat ${ENV_DIR}/APP_BASE)       # ex. `customer`
+APP_DEPS=$(cat ${ENV_DIR}/APP_DEPS)       # ex. `api core`
+
+(
+    stage=`mktemp -d`                                                          && # make a temp directory to stage "correct" layout
+    mv ${BUILD_DIR}/${APP_BASE}/* ${stage}                                     && # stage the app folder we care about
+    mv ${BUILD_DIR}/.git ${stage}                                              && # stage git dir
+    for app_dir in ${APP_DEPS}; do mv ${BUILD_DIR}/${app_dir} ${stage}; done   && # stage the dependency folders we also care about
+    #shopt -s dotglob nullglob                                                  && # include files that start with . and resolve missing patterns to null
+    rm -rf ${BUILD_DIR}/*                                                      && # clean the target
+    mv ${stage}/* ${BUILD_DIR}/                                                && # copy git dir back
+    mv ${stage}/.git ${BUILD_DIR}/
+)
+
+if ! [ $? ]; then
+    echo "FAILED to stage ${APP_BASE} ${APP_DEPS}" | indent
+    exit 1
+fi
+
+echo "Copied ${APP_BASE} ${APP_DEPS} to application root successfully." | indent
