@@ -30,7 +30,7 @@ APP_DEPS=$(cat ${ENV_DIR}/APP_DEPS)       # ex. `api core`
     mv ${stage}/* ${BUILD_DIR}/
 )
 
-if ! [ $? ]; then
+if [ $? -eq 1 ]; then
     echo "FAILED to stage ${APP_BASE} ${APP_DEPS}" | indent
     exit 1
 fi
