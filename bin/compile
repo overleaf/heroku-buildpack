@@ -25,6 +25,7 @@ APP_DEPS=$(cat ${ENV_DIR}/APP_DEPS)       # ex. `api core`
     stage=`mktemp -d`                                                          && # make a temp directory to stage "correct" layout
     shopt -s dotglob                                                           && # include files that start with .
     mv ${BUILD_DIR}/${APP_BASE}/* ${stage}                                     && # stage the app folder we care about
+    for app_dir in ${APP_DEPS}; do rm -rf ${stage}/${app_dir}; done            && # remove any files/folders to be replaced by deps
     for app_dir in ${APP_DEPS}; do mv ${BUILD_DIR}/${app_dir} ${stage}; done   && # stage the dependency folders we also care about
     shopt -s nullglob                                                          && # resolve missing patterns to null
     rm -rf ${BUILD_DIR}/*                                                      && # clean the target
